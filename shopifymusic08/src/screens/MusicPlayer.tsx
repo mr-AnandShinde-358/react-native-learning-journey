@@ -8,31 +8,24 @@ import ControlCenter from '../components/ControlCenter';
 const { width } = Dimensions.get('window');
 
 const MusicPlayer = () => {
-  const [track, setTrack] = useState<Track | null| undefined>(null);
+  // Typescript Error Fix: Allow null or undefined explicitly
+  const [track, setTrack] = useState<Track | null | undefined>(null);
 
-  // 1. Initial Load
+  // 1. Initial Load: App khulte hi gana load kare
   useEffect(() => {
-    async function getTrack() {
+    async function setupTrack() {
         const activeTrack = await TrackPlayer.getActiveTrack();
         if (activeTrack) {
             setTrack(activeTrack);
         }
     }
-    getTrack();
+    setupTrack();
   }, []);
 
-  // 2. Event Listener (Fix kiya gaya hai)
+  // 2. Event Listener: Jab gana change ho
   useTrackPlayerEvents([Event.PlaybackActiveTrackChanged], async (event) => {
-    if (event.type === Event.PlaybackActiveTrackChanged) {
-        // Agar event me direct track object hai
-        if (event.track) {
-            setTrack(event.track);
-        } 
-        // Agar index hai, to fetch karo (Fallback method)
-        else if (event.index !== undefined) {
-             const playingTrack = await TrackPlayer.getTrack(event.index);
-             setTrack(playingTrack);
-        }
+    if (event.type === Event.PlaybackActiveTrackChanged && event.track) {
+        setTrack(event.track); // Directly set the track object
     }
   });
 
@@ -43,11 +36,12 @@ const MusicPlayer = () => {
           {track?.artwork ? (
             <Image
               style={styles.albumArtImg}
-              source={{ uri: track?.artwork?.toString() }}
+              // Artwork uri ko string me convert karke pass karein
+              source={{ uri: track.artwork.toString() }}
             />
           ) : (
-            <View style={[styles.albumArtImg, { backgroundColor: '#555', justifyContent: 'center', alignItems: 'center' }]}>
-                <Text style={{color: '#FFF'}}>Loading...</Text>
+            <View style={[styles.albumArtImg, { backgroundColor: '#333' }]}>
+               {/* Agar photo na ho to Placeholder */}
             </View>
           )}
         </View>
